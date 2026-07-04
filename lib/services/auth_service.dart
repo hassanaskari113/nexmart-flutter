@@ -9,6 +9,16 @@ class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final _fireStore = FirebaseFirestore.instance;
 
+  bool _isInitialized = false;
+
+  // ensures GoogleSignIn.initialize() only ever runs once per app lifetime
+  Future<void> _ensureInitialized() async {
+    if (!_isInitialized) {
+      await _googleSignIn.initialize();
+      _isInitialized = true;
+    }
+  }
+
   // stream that tells us login state changes
   Stream<firebase_auth.User?> get authStateChanges {
     return _firebaseAuth.authStateChanges();
@@ -21,14 +31,15 @@ class AuthService {
 
   Future<firebase_auth.User?> signInWithGoogle() async {
     try {
-      // step 1: trigger the google account picker popup
-      await _googleSignIn.initialize();
+      // step 1: make sure the plugin is initialized (only happens once, ever)
+      await _ensureInitialized();
+      // step 2: trigger the google account picker popup
       final googleUser = await _googleSignIn.authenticate();
-      // step 2: get the authentication tokens from that google account
+      // step 3: get the authentication tokens from that google account
       final googleAuth = googleUser.authentication;
-      // step 3: build a firebase credential using those tokens
+      // step 4: build a firebase credential using those tokens
       final credential = firebase_auth.GoogleAuthProvider.credential(idToken: googleAuth.idToken);
-      // step 4: sign into firebase using that credential
+      // step 5: sign into firebase using that credential
       final userCredential = await _firebaseAuth.signInWithCredential(credential);
       // saving user to fireStore if it does not exist there before
       final user = userCredential.user;

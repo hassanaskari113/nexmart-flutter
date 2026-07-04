@@ -22,7 +22,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     });
     try {
       final authService = ref.read(authServiceProvider);
-      final user = await authService.signInWithGoogle();
+      final user = await authService.signInWithGoogle().timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          debugPrint('Google sign-in timed out');
+          return null;
+        },
+      );
       if (user != null) {
         if (mounted) {
           context.go('/home');
@@ -33,7 +39,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         }
       }
     } catch (e) {
-      debugPrint('Error signing in with Google: $e');
+      debugPrint('Error in SignIn: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Center(child: Text("Error in Signing in..."))));
       }
