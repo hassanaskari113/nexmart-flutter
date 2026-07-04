@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:nexmart/models/product_model.dart';
 import 'package:nexmart/models/cart_item_model.dart';
@@ -86,7 +85,7 @@ class CartNotifier extends StateNotifier<List<CartItemModel>> {
   Future<void> _saveCartToStorage() async {
     final prefs = await SharedPreferences.getInstance();
     final cartAsMap = state.map((cartItems) {
-      return {'product': cartItems.product.toMap(), 'quantity': cartItems.quantity};
+      return {'product': cartItems.product.toJson(), 'quantity': cartItems.quantity};
     }).toList();
     final jsonString = jsonEncode(cartAsMap);
     await prefs.setString(_storageKey, jsonString);
@@ -101,10 +100,7 @@ class CartNotifier extends StateNotifier<List<CartItemModel>> {
     final decode = jsonDecode(jsonString) as List;
     final restoredCart = decode.map((item) {
       final map = item as Map<String, dynamic>;
-      return CartItemModel(
-        product: ProductModel.fromMap(map['product'], map['product']['productId']),
-        quantity: map['quantity'],
-      );
+      return CartItemModel(product: ProductModel.fromJson(map['product']), quantity: map['quantity']);
     }).toList();
     state = restoredCart;
   }

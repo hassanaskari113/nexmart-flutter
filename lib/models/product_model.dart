@@ -54,4 +54,33 @@ class ProductModel {
       createdAt: (map['createdAt'] as Timestamp).toDate(),
     );
   }
+
+  // For local JSON storage (SharedPreferences) — createdAt as ISO string, not Firestore Timestamp
+  Map<String, dynamic> toJson() {
+    return {
+      'productId': productId,
+      'name': name,
+      'description': description,
+      'price': price,
+      'imageUrl': imageUrl,
+      'category': category,
+      'stock': stock,
+      'rating': rating,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory ProductModel.fromJson(Map<String, dynamic> map) {
+    return ProductModel(
+      productId: map['productId'],
+      name: map['name'],
+      price: (map['price'] as num).toDouble(),
+      description: map['description'],
+      imageUrl: map['imageUrl'] ?? '',
+      category: map['category'],
+      stock: (map['stock'] as num).toInt(),
+      rating: (map['rating'] as num).toDouble(),
+      createdAt: DateTime.parse(map['createdAt']),
+    );
+  }
 }
